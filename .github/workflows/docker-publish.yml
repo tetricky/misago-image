@@ -89,5 +89,5 @@ jobs:
 
       - name: Push manifests
         run: |
-          docker manifest push --amend $DOCKER_REPO:${{ steps.vars.outputs.version }}
-          docker manifest push --amend $GHCR_REPO:${{ steps.vars.outputs.version }}
+          docker manifest push --purge $DOCKER_REPO:${{ steps.vars.outputs.version }}
+          docker manifest push --purge $GHCR_REPO:${{ steps.vars.outputs.version }}
