@@ -77,13 +77,13 @@ jobs:
 
       - name: Create Docker Hub manifest
         run: |
-          docker manifest create $DOCKER_REPO:${{ steps.vars.outputs.version }} \
+          docker manifest create --amend $DOCKER_REPO:${{ steps.vars.outputs.version }} \
             $DOCKER_REPO:${{ steps.vars.outputs.version }}-linux-amd64 \
             $DOCKER_REPO:${{ steps.vars.outputs.version }}-linux-arm64
 
       - name: Create GHCR manifest
         run: |
-          docker manifest create $GHCR_REPO:${{ steps.vars.outputs.version }} \
+          docker manifest create --amend $GHCR_REPO:${{ steps.vars.outputs.version }} \
             $GHCR_REPO:${{ steps.vars.outputs.version }}-linux-amd64 \
             $GHCR_REPO:${{ steps.vars.outputs.version }}-linux-arm64
 
