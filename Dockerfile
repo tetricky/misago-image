@@ -1,13 +1,11 @@
-FROM python:3.11
+FROM python:3.12
 
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE 1
 ENV PYTHONUNBUFFERED 1
 ENV IN_MISAGO_DOCKER 1
 
 # Install dependencies in one single command/layer
-RUN wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | apt-key add - && \
-    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main" >> /etc/apt/sources.list.d/pgdg.list' && \
-    apt-get update && \
+RUN apt-get update && \
     apt-get install -y --allow-unauthenticated \
       vim \
       libffi-dev \
@@ -16,7 +14,7 @@ RUN wget -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O - | apt-key ad
       libopenjp2-7-dev \
       locales \
       cron \
-      postgresql-client-10 \
+      postgresql-client-15 \
       gettext && \
     apt-get clean
 

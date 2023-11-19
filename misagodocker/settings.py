@@ -51,7 +51,7 @@ DATABASES = {
     'default': {
         # Misago requires PostgreSQL to run
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('POSTGRES_USER'),
+        'NAME': os.environ.get('POSTGRES_DB'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': os.environ.get('POSTGRES_HOST'),
@@ -66,11 +66,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 CACHES = {
     "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.environ.get('CACHE_REDIS_URL', "redis://redis/1"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get('CACHE_REDIS_URL', "redis://redis-6/1"),
     }
 }
 
@@ -108,8 +105,6 @@ LANGUAGE_CODE = os.environ.get('MISAGO_LANGUAGE_CODE', 'en-us')
 TIME_ZONE = os.environ.get('MISAGO_TIME_ZONE', 'UTC')
 
 USE_I18N = True
-
-USE_L10N = True
 
 USE_TZ = True
 
@@ -334,7 +329,6 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.templates.TemplatesPanel',
     'debug_toolbar.panels.cache.CachePanel',
     'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
 ]
 
 
@@ -359,7 +353,7 @@ REST_FRAMEWORK = {
 
 # Configure Celery to use Redis as message broker.
 
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', "redis://redis/0")
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', "redis://redis-6/0")
 
 # Celery workers may leak the memory, eventually depriving the instance of resources.
 # This setting forces celery to stop worker, clean after it and create new one
