@@ -7,8 +7,8 @@ name: "Docker publish"
 on:
   push:
     tags:
-#      - "v*"
-      - "*"
+      - "v*"
+#      - "*"
 
 jobs:
   # This can also be named anything, it'll show up in the GitHub Actions UI.
