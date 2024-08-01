@@ -1,41 +1,45 @@
-name: docker
+# This can be named anything, it'll show up in the GitHub Actions UI.
+name: "Docker publish"
 
+# This workflow will only run when git tags are pushed that start with `v*`,
+# meaning `v123` or `v1.0.0` will work but `0.1.0` won't, if you don't want to
+# prefix tags with `v` then remove the `v`.
 on:
   push:
     tags:
-      - "v*"
-
-env:
-  DOCKER_REPO: tetricky/misago-image
-  GHCR_REPO: ghcr.io/tetricky/misago-image
+#      - "v*"
+      - "*"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
+  # This can also be named anything, it'll show up in the GitHub Actions UI.
+  build-and-push-image:
+    # Let's use the latest Ubuntu version for our CI environment.
+    runs-on: "ubuntu-latest"
 
-    strategy:
-      matrix:
-        platform:
-          - linux/amd64
-          - linux/arm64
-
+    # Most of the steps are things we covered in the Buildx basics post.
+    # They are just wrapped up into GitHub Actions instead of being raw shell
+    # commands we run manually.
     steps:
-      - name: Set vars
-        id: vars
-        run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-          echo "platform=$(echo -n ${{ matrix.platform }} | sed 's/\//-/g')" >> $GITHUB_OUTPUT
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      # Literally git checkout the code, this is standard in most actions.
+      - name: "Checkout"
+        uses: "actions/checkout@v4"
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      # Allow the CI environment to emulate multiple CPU architectures.
+      - name: "Set up QEMU"
+        uses: "docker/setup-qemu-action@v3"
+
+      # Create and configure the Buildx context.
+      - name: "Set up Docker Buildx"
+        uses: "docker/setup-buildx-action@v3"
+
+      # Log into the Docker Hub (more on this in a bit).
+      - name: "Login to Docker Hub"
+        uses: "docker/login-action@v3"
         with:
-          username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+          username: "${{ secrets.DOCKERHUB_USERNAME }}"
+          password: "${{ secrets.DOCKERHUB_TOKEN }}"
 
+      # Log into the Github Container Registry (more on this in a bit).
       - name: Login to Github Container Registry
         uses: docker/login-action@v3
         with:
@@ -43,51 +47,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
 
-      - name: Build docker images
-        uses: docker/build-push-action@v6
+      # Push images for X platforms to the Docker Hub (more on this in a bit).
+      - name: "Build and push image tags"
+        uses: "docker/build-push-action@v5"
         with:
-          context: .
+          context: "."
+          platforms: "linux/amd64,linux/arm64"
           push: true
-          platforms: ${{ matrix.platform }}
           tags: |
-            ${{ env.DOCKER_REPO }}:${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.platform }}
-            ${{ env.GHCR_REPO}}:${{ steps.vars.outputs.version }}-${{ steps.vars.outputs.platform }}
-  release:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-
-    steps:
-      - name: Set vars
-        id: vars
-        run: |
-          echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_HUB_USER }}
-          password: ${{ secrets.DOCKER_HUB_PASSWORD }}
-
-      - name: Login to Github Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
-
-      - name: Create Docker Hub manifest
-        run: |
-          docker manifest create --amend $DOCKER_REPO:${{ steps.vars.outputs.version }} \
-            $DOCKER_REPO:${{ steps.vars.outputs.version }}-linux-amd64 \
-            $DOCKER_REPO:${{ steps.vars.outputs.version }}-linux-arm64
-
-      - name: Create GHCR manifest
-        run: |
-          docker manifest create --amend $GHCR_REPO:${{ steps.vars.outputs.version }} \
-            $GHCR_REPO:${{ steps.vars.outputs.version }}-linux-amd64 \
-            $GHCR_REPO:${{ steps.vars.outputs.version }}-linux-arm64
-
-      - name: Push manifests
-        run: |
-          docker manifest push $DOCKER_REPO:${{ steps.vars.outputs.version }}
-          docker manifest push $GHCR_REPO:${{ steps.vars.outputs.version }}
+            "${{ github.repository }}:latest"
+            "${{ github.repository }}:${{ github.ref_name }}"            
