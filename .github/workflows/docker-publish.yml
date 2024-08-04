@@ -54,7 +54,7 @@ jobs:
           platforms: "linux/amd64,linux/arm64"
           push: true
           tags: |
-            "${{ github.repository }}:latest"
-            "${{ github.repository }}:${{ github.ref_name }}"            
-            "ghcr.io/tetricky/${{ github.repository }}:latest"
-            "ghcr.io/tetricky/${{ github.repository }}:${{ github.ref_name }}"
+            ${{ github.repository }}:latest
+            ${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
