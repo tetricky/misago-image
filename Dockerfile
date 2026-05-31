@@ -1,4 +1,4 @@
-FROM python:3.12
+FROM python:3.12-bookworm
 
 ENV APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE 1
 ENV PYTHONUNBUFFERED 1
@@ -17,14 +17,15 @@ RUN apt-get update && \
       cron \
       postgresql-client-15 \
       gettext && \
-    apt-get clean
+    apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Make current directory available as "Misago" within docker
-ADD . /misago
+COPY . /misago
 WORKDIR /misago
 
 # Install requirements files
-RUN pip install --upgrade pip && \
+RUN pip install --no-cache-dir --upgrade pip && \
     pip install -r requirements.txt
 
 # Bootstrap plugins
@@ -33,5 +34,5 @@ RUN ./.run bootstrap_plugins
 # Expose port 3031 from Docker
 EXPOSE 3031
 
-# Call entrypoint script to setup 
+# Call entrypoint script to setup
 CMD ["uwsgi", "--ini", "uwsgi.ini"]
